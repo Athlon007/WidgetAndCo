@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: WidgetAndCo/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__WidgetAndCoDatabase=Server=db;Database=WidgetAndCo;User Id=sa;Password=Password1;
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8080:80" # Expose API on localhost:8080
+    depends_on:
+      - db
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Password1
+      - MSSQL_PID=Express
+      - MSSQL_ENABLE_SQL_AUTHENTICATION=1
+    ports:
+      - "1433:1433" # Expose database on localhost
+    volumes:
+      - mssql-data:/var/opt/mssql # Persistent data volume
+
+volumes:
+  mssql-data:
+    driver: local

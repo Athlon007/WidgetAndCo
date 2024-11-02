@@ -1,0 +1,6 @@
+@WidgetAndCo_HostAddress = http://localhost:5173
+
+GET {{WidgetAndCo_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
