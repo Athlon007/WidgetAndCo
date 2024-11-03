@@ -25,4 +25,28 @@ public class User
     public RoleEnum Role { get; set; } = RoleEnum.User;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime LastLogin { get; set; }
+
+    // overwrite equals
+    public override bool Equals(object? obj)
+    {
+        if (obj is not User user)
+        {
+            return false;
+        }
+
+        return Id == user.Id &&
+               FirstName == user.FirstName &&
+               LastName == user.LastName &&
+               Email == user.Email &&
+               PasswordHash == user.PasswordHash &&
+               Role == user.Role &&
+               CreatedAt == user.CreatedAt &&
+               LastLogin == user.LastLogin;
+    }
+
+    // overwrite get hash code
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Id, FirstName, LastName, Email, PasswordHash, Role, CreatedAt, LastLogin);
+    }
 }

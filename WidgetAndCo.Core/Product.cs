@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WidgetAndCo.Core;
 
@@ -22,4 +23,14 @@ public class Product
     public string Category { get; set; }
 
     public string ImageUrl { get; set; }
+
+    public Product(Guid id, string name, decimal price, string description, string category, string imageUrl)
+    {
+        Id = id;
+        Name = name;
+        Price = price;
+        Description = description;
+        Category = category;
+        ImageUrl = imageUrl;
+    }
 }
