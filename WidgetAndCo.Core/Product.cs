@@ -18,19 +18,18 @@ public class Product
     [MaxLength(500)]
     public string Description { get; set; }
 
-    [Required]
-    [MaxLength(100)]
-    public string Category { get; set; }
-
     public string ImageUrl { get; set; }
 
-    public Product(Guid id, string name, decimal price, string description, string category, string imageUrl)
+    public Product()
+    {
+    }
+
+    public Product(Guid id, string name, decimal price, string description, string imageUrl)
     {
         Id = id;
         Name = name;
         Price = price;
         Description = description;
-        Category = category;
         ImageUrl = imageUrl;
     }
 }

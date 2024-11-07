@@ -37,9 +37,4 @@ public class ProductRepository(WidgetStoreDbContext context) : IProductRepositor
             await context.SaveChangesAsync();
         }
     }
-
-    public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category)
-    {
-        return await context.Products.Where(p => p.Category == category).ToListAsync();
-    }
 }

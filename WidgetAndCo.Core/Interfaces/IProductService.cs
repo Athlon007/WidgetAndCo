@@ -9,20 +9,20 @@ public interface IProductService
      * @param product The product to create
      * @return The created product
      */
-    Task<Product> CreateProduct(CreateProductDto product);
+    Task<ProductResponseDto> CreateProduct(ProductRequestDto product);
 
     /**
      * Get a product by id
      * @param id The id of the product to get
      * @return The product
      */
-    Task<Product> GetProduct(Guid id);
+    Task<ProductResponseDto> GetProduct(Guid id);
 
     /**
      * Get all products
      * @return A list of products
      */
-    Task<List<Product>> GetProducts();
+    Task<IEnumerable<ProductResponseDto>> GetProducts();
 
     /**
      * Update a product
@@ -30,7 +30,7 @@ public interface IProductService
      * @param product The updated product
      * @return The updated product
      */
-    Task<Product> UpdateProduct(Guid id, Product product);
+    Task<ProductResponseDto> UpdateProduct(Guid id, ProductRequestDto product);
 
     /**
      * Delete a product

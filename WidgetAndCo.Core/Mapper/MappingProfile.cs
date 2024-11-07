@@ -7,6 +7,11 @@ public class MappingProfile: Profile
 {
     public MappingProfile()
     {
+        // User
         CreateMap<User, UserResponseDto>();
+
+        // Product
+        CreateMap<Product, ProductResponseDto>();
+        CreateMap<ProductRequestDto, Product>();
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WidgetAndCo.Data;
 
@@ -11,9 +12,11 @@ using WidgetAndCo.Data;
 namespace WidgetAndCo.Data.Migrations
 {
     [DbContext(typeof(WidgetStoreDbContext))]
-    partial class WidgetStoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241107153643_RemoveCategoryColumnFromproducts")]
+    partial class RemoveCategoryColumnFromproducts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
