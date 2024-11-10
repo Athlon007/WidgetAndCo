@@ -18,4 +18,10 @@ public record ProductRequestDto(
 
     // must be a JPG or PNG
     IFormFile Image
-    );
+    )
+{
+    public ProductRequestDto() : this("", 0, "", null)
+    {
+
+    }
+}

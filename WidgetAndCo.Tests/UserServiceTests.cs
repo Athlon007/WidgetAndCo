@@ -22,6 +22,13 @@ public class UserServiceTests
         _mapperMock = new Mock<IMapper>();
         _configurationMock = new Mock<IConfiguration>();
         _userService = new UserService(_userRepositoryMock.Object, _configurationMock.Object, _mapperMock.Object);
+
+        var jwtSettingsSection = new Mock<IConfigurationSection>();
+        _configurationMock.Setup(config => config.GetSection("JwtSettings")).Returns(jwtSettingsSection.Object);
+        jwtSettingsSection.Setup(c => c["SecretKey"]).Returns("thisisatestingsupersecretkey123456789");
+        jwtSettingsSection.Setup(c => c["AccessTokenExpirationHours"]).Returns("1");
+        jwtSettingsSection.Setup(c => c["Issuer"]).Returns("issuer");
+        jwtSettingsSection.Setup(c => c["Audience"]).Returns("audience");
     }
 
     private User GetUser()
@@ -176,14 +183,8 @@ public class UserServiceTests
             Email = loginUserDto.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(loginUserDto.Password)
         };
-        var jwtSettingsSection = new Mock<IConfigurationSection>();
-        _userRepositoryMock.Setup(repo => repo.GetUserByEmailAsync(loginUserDto.Email)).ReturnsAsync(user);
 
-        _configurationMock.Setup(config => config.GetSection("JwtSettings")).Returns(jwtSettingsSection.Object);
-        jwtSettingsSection.Setup(c => c["SecretKey"]).Returns("thisisatestingsupersecretkey123456789");
-        jwtSettingsSection.Setup(c => c["AccessTokenExpirationHours"]).Returns("1");
-        jwtSettingsSection.Setup(c => c["Issuer"]).Returns("issuer");
-        jwtSettingsSection.Setup(c => c["Audience"]).Returns("audience");
+        _userRepositoryMock.Setup(repo => repo.GetUserByEmailAsync(loginUserDto.Email)).ReturnsAsync(user);
 
         // Act
         var result = await _userService.LoginUserAsync(loginUserDto);
@@ -206,5 +207,65 @@ public class UserServiceTests
 
         // Assert
         Assert.IsNull(result);
+    }
+
+    [Test]
+    public async Task ValidateToken_ShouldReturnTrue_WhenTokenIsValid()
+    {
+        // Arrange
+        var loginUserDto = GetLoginUserDto();
+        var user = new User
+        {
+            Email = loginUserDto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(loginUserDto.Password)
+        };
+
+        _userRepositoryMock.Setup(repo => repo.GetUserByEmailAsync(loginUserDto.Email)).ReturnsAsync(user);
+
+        // Act
+        // Generate token
+        var loginResponse = await _userService.LoginUserAsync(loginUserDto);
+        // Validate token
+        var result = _userService.ValidateToken(loginResponse.Token);
+
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [Test]
+    public async Task ValidateToken_ShouldReturnFalse_WhenTokenIsInvalid()
+    {
+        // Arrange
+        var token = "invalidtoken";
+
+        // Act
+        var result = _userService.ValidateToken(token);
+
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [Test]
+    public async Task GetUserIdFromToken_ShouldReturnUserId_WhenTokenIsValid()
+    {
+        // Arrange
+        var loginUserDto = GetLoginUserDto();
+        var user = new User
+        {
+            Email = loginUserDto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(loginUserDto.Password)
+        };
+
+        _userRepositoryMock.Setup(repo => repo.GetUserByEmailAsync(loginUserDto.Email)).ReturnsAsync(user);
+
+        // Act
+        // Generate token
+        var loginResponse = await _userService.LoginUserAsync(loginUserDto);
+        // Get user ID from token
+        var result = _userService.GetUserIdFromToken(loginResponse.Token);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOf<Guid>(result);
     }
 }

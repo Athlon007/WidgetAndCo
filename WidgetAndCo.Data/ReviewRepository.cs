@@ -28,14 +28,14 @@ public class ReviewRepository(TableClient tableClient) : IReviewRepository
         await tableClient.AddEntityAsync(reviewEntity);
     }
 
-    public async Task<IEnumerable<ReviewResponseDto>> GetReviewsAsync(Guid productId)
+    public async Task<IEnumerable<Review>> GetReviewsAsync(Guid productId)
     {
         // Get reviews from Azure Table Storage
-        var reviews = new List<ReviewResponseDto>();
+        var reviews = new List<Review>();
 
         await foreach (Review review in tableClient.QueryAsync<Review>(filter: $"PartitionKey eq '{productId}'"))
         {
-            reviews.Add(new ReviewResponseDto
+            reviews.Add(new Review
             {
                 RowKey = Guid.Parse(review.RowKey).ToString(),
                 UserId = review.UserId,
@@ -48,12 +48,12 @@ public class ReviewRepository(TableClient tableClient) : IReviewRepository
         return reviews;
     }
 
-    public async Task<ReviewResponseDto> GetReviewAsync(Guid productId, Guid reviewId)
+    public async Task<Review> GetReviewAsync(Guid productId, Guid reviewId)
     {
         // Get review from Azure Table Storage
         var review = await tableClient.GetEntityAsync<Review>(productId.ToString(), reviewId.ToString());
 
-        return new ReviewResponseDto
+        return new Review
         {
             RowKey = Guid.Parse(review.Value.RowKey).ToString(),
             UserId = review.Value.UserId,
