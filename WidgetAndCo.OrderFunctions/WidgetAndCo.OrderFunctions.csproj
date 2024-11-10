@@ -26,4 +26,9 @@
     <ItemGroup>
         <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext"/>
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\WidgetAndCo.Business\WidgetAndCo.Business.csproj" />
+      <ProjectReference Include="..\WidgetAndCo.Core\WidgetAndCo.Core.csproj" />
+      <ProjectReference Include="..\WidgetAndCo.Data\WidgetAndCo.Data.csproj" />
+    </ItemGroup>
 </Project>

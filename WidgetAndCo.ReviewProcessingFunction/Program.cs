@@ -1,10 +1,8 @@
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using WidgetAndCo.Business;
-using WidgetAndCo.Core;
 using WidgetAndCo.Core.Interfaces;
 using WidgetAndCo.Core.Mapper;
 using WidgetAndCo.Data;
@@ -14,16 +12,6 @@ var host = new HostBuilder()
     .ConfigureServices((context, services) =>
     {
         services.AddAutoMapper(typeof(MappingProfile));
-
-        // Bind JwtSettings from appsettings.json
-        // Create manually from local.settings.json
-        services.Configure<JwtSettings>(options =>
-        {
-            options.SecretKey = Environment.GetEnvironmentVariable("JwtSecretKey") ?? throw new InvalidOperationException("JwtSecretKey environment variable is not set.");
-            options.Issuer = Environment.GetEnvironmentVariable("JwtIssuer") ?? throw new InvalidOperationException("JwtIssuer environment variable is not set.");
-            options.Audience = Environment.GetEnvironmentVariable("JwtAudience") ?? throw new InvalidOperationException("JwtAudience environment variable is not set.");
-            options.AccessTokenExpirationHours = int.Parse(Environment.GetEnvironmentVariable("JwtAccessTokenExpirationHours") ?? throw new InvalidOperationException("JwtAccessTokenExpirationHours environment variable is not set."));
-        });
 
         // Use the connection string directly as a string, without Uri wrapping
         var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage") ?? throw new InvalidOperationException("AzureWebJobsStorage environment variable is not set.");

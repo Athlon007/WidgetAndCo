@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "WidgetAndCo.OrderProcessingFunction": {
+    "WidgetAndCo.OrderFunctions": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7017",
+      "commandLineArgs": "--port 7026",
       "launchBrowser": false
     }
   }

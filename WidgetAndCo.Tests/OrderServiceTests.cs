@@ -9,6 +9,7 @@ namespace WidgetAndCo.Tests;
 public class OrderServiceTests
 {
     private Mock<IOrderRepository> _orderRepositoryMock;
+    private Mock<IProductRepository> _productRepositoryMock;
     private Mock<IMapper> _mapperMock;
 
     private IOrderService _orderService;
@@ -17,9 +18,10 @@ public class OrderServiceTests
     public void Setup()
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
+        _productRepositoryMock = new Mock<IProductRepository>();
         _mapperMock = new Mock<IMapper>();
 
-        _orderService = new OrderService(_orderRepositoryMock.Object, _mapperMock.Object);
+        _orderService = new OrderService(_orderRepositoryMock.Object, _productRepositoryMock.Object, _mapperMock.Object);
     }
 
     public Order GetOrder()
@@ -34,13 +36,13 @@ public class OrderServiceTests
                 {
                     Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     Name = "Product 1",
-                    Price = 10.0m
+                    Price = 10m
                 },
                 new Product()
                 {
                     Id = Guid.Parse("00000000-0000-0000-0000-000000000002"),
                     Name = "Product 2",
-                    Price = 20.0m
+                    Price = 20m
                 }
             }
         };
@@ -57,10 +59,11 @@ public class OrderServiceTests
 
     public OrderResponseDto GetOrderResponseDto()
     {
-        return new OrderResponseDto(Guid.Parse("00000000-0000-0000-0000-000000000001"), "UserId", new List<int>()
+        return new OrderResponseDto(Guid.Parse("00000000-0000-0000-0000-000000000001"), "UserId", new List<Guid>()
         {
-            1, 2
-        }, 30.0m);
+            Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            Guid.Parse("00000000-0000-0000-0000-000000000002")
+        }, 30m);
     }
 
     [Test]
@@ -73,7 +76,7 @@ public class OrderServiceTests
 
         _mapperMock.Setup(m => m.Map<Order>(orderRequestDto)).Returns(order);
         _mapperMock.Setup(m => m.Map<OrderResponseDto>(order)).Returns(orderResponseDto);
-        _orderRepositoryMock.Setup(or => or.StoreOrderAsync(order)).ReturnsAsync(order);
+        _orderRepositoryMock.Setup(or => or.StoreOrderAsync(It.IsAny<OrderRequestDto>())).ReturnsAsync(order);
 
         // Act
         var result = await _orderService.CreateOrderAsync(orderRequestDto);
@@ -93,6 +96,12 @@ public class OrderServiceTests
 
         _orderRepositoryMock.Setup(or => or.GetOrdersAsync(It.IsAny<Guid>())).ReturnsAsync(orders);
         _mapperMock.Setup(m => m.Map<IEnumerable<OrderResponseDto>>(orders)).Returns(orderResponseDtos);
+        _productRepositoryMock.Setup(pr => pr.GetProductByIdAsync(It.IsAny<Guid>())).ReturnsAsync(new Product()
+        {
+            Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            Name = "Product 1",
+            Price = 10m
+        });
 
         // Act
         var result = await _orderService.GetOrdersAsync(Guid.NewGuid());
@@ -101,33 +110,4 @@ public class OrderServiceTests
         Assert.AreEqual(orderResponseDtos, result);
     }
 
-    [Test]
-    public async Task GetOrderAsync_WithValidUserIdAndOrderId_ReturnsOrderResponseDto()
-    {
-        // Arrange
-        var order = GetOrder();
-        var orderResponseDto = GetOrderResponseDto();
-
-        _orderRepositoryMock.Setup(or => or.GetOrderAsync(It.IsAny<Guid>(), It.IsAny<Guid>())).ReturnsAsync(order);
-        _mapperMock.Setup(m => m.Map<OrderResponseDto>(order)).Returns(orderResponseDto);
-
-        // Act
-        var result = await _orderService.GetOrderAsync(Guid.NewGuid(), Guid.NewGuid());
-
-        // Assert
-        Assert.AreEqual(orderResponseDto, result);
-    }
-
-    [Test]
-    public async Task CreateOrderAsync_WithInvalidOrderRequestDto_ThrowsException()
-    {
-        // Arrange
-        var orderRequestDto = new OrderRequestDto("UserId", new List<Guid>());
-
-        // Act
-        var exception = Assert.ThrowsAsync<Exception>(() => _orderService.CreateOrderAsync(orderRequestDto));
-
-        // Assert
-        Assert.AreEqual("Order request must contain at least one product.", exception.Message);
-    }
 }

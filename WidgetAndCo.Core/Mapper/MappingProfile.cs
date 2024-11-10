@@ -16,5 +16,9 @@ public class MappingProfile: Profile
 
         // Review
         CreateMap<Review, ReviewResponseDto>();
+
+        // Order
+        CreateMap<Order, OrderResponseDto>();
+        CreateMap<OrderRequestDto, Order>();
     }
 }
