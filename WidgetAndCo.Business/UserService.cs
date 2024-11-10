@@ -97,4 +97,52 @@ public class UserService(IUserRepository userRepository, IConfiguration configur
         var responseToken = new JwtSecurityTokenHandler().WriteToken(token);
         return new LoginResponseDto(responseToken);
     }
+
+    public bool ValidateToken(string token)
+    {
+        var jwtSettings = configuration.GetSection("JwtSettings");
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"] ?? throw new InvalidOperationException());
+
+        try
+        {
+            tokenHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidAudience = jwtSettings["Audience"],
+                ClockSkew = TimeSpan.Zero
+            }, out _);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public Guid GetUserIdFromToken(string token)
+    {
+        var jwtSettings = configuration.GetSection("JwtSettings");
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"] ?? throw new InvalidOperationException());
+
+        tokenHandler.ValidateToken(token, new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            ClockSkew = TimeSpan.Zero
+        }, out var validatedToken);
+
+        var jwtToken = (JwtSecurityToken)validatedToken;
+        var output = jwtToken.Claims.First(x => x.Type == JwtRegisteredClaimNames.Sub).Value;
+        return Guid.Parse(output);
+    }
 }

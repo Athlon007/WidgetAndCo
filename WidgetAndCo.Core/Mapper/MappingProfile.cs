@@ -13,5 +13,8 @@ public class MappingProfile: Profile
         // Product
         CreateMap<Product, ProductResponseDto>();
         CreateMap<ProductRequestDto, Product>();
+
+        // Review
+        CreateMap<Review, ReviewResponseDto>();
     }
 }

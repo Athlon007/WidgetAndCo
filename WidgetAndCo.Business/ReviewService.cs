@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using WidgetAndCo.Core;
 using WidgetAndCo.Core.DTOs;
@@ -7,39 +8,27 @@ using WidgetAndCo.Core.Interfaces;
 
 namespace WidgetAndCo.Business;
 
-public class ReviewService(IConfiguration configuration) : IReviewService
+public class ReviewService(IReviewRepository reviewRepository, IMapper mapper) : IReviewService
 {
-    private readonly HttpClient _client = new();
-
-    public async Task DelegateStoreReviewAsync(ReviewRequestDto reviewRequest, Guid userId)
+    public async Task StoreReview(ReviewRequestDto reviewRequest, Guid userId)
     {
-        var reviewDelegate = new ReviewDelegateDto(userId,
-                reviewRequest.ProductId,
-                reviewRequest.Title,
-                reviewRequest.Description,
-                reviewRequest.Rating);
-
-        // Delegate the Function to the Function App
-        var json = JsonSerializer.Serialize(reviewDelegate);
-        var response = await _client.PostAsync(configuration["FunctionsUrls:StoreReview"],
-            new StringContent(json,
-                Encoding.UTF8,
-                "application/json")
-            );
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception("Failed to store review");
-        }
+        // Store review in Azure Table Storage
+        await reviewRepository.StoreReviewAsync(new ReviewDelegateDto(userId,
+            reviewRequest.ProductId,
+            reviewRequest.Title,
+            reviewRequest.Description,
+            reviewRequest.Rating));
     }
 
     public async Task<IEnumerable<ReviewResponseDto>> GetReviews(Guid productId)
     {
-        throw new NotImplementedException();
+        var reviews = await reviewRepository.GetReviewsAsync(productId);
+        return reviews.Select(review => mapper.Map<ReviewResponseDto>(review));
     }
 
     public async Task<ReviewResponseDto> GetReview(Guid productId, Guid reviewId)
     {
-        throw new NotImplementedException();
+        var review = await reviewRepository.GetReviewAsync(productId, reviewId);
+        return mapper.Map<ReviewResponseDto>(review);
     }
 }

@@ -33,4 +33,8 @@ public interface IUserService
      * <param name="loginUserDto">The email and password of the user to log in.</param>
      */
     Task<LoginResponseDto?> LoginUserAsync(LoginUserDto loginUserDto);
+
+    bool ValidateToken(string token);
+
+    Guid GetUserIdFromToken(string token);
 }

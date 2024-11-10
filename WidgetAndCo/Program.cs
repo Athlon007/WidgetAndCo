@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using WidgetAndCo.Business;
+using WidgetAndCo.Core.Docs;
 using WidgetAndCo.Core.Interfaces;
 using WidgetAndCo.Core.Mapper;
 using WidgetAndCo.Data;
@@ -80,6 +81,12 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
+
+
+
+    // Add Review Function Swagger doc
+    options.DocumentFilter<ReviewStoreDocFilter>();
+
 });
 
 var app = builder.Build();
