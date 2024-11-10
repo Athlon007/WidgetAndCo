@@ -1,16 +1,29 @@
 using System.ComponentModel.DataAnnotations;
+using Azure;
+using Azure.Data.Tables;
 
 namespace WidgetAndCo.Core;
 
-public class Order
+public class Order : ITableEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public string PartitionKey { get; set; } // Corresponds to user id
 
-    [Required]
-    public Guid CustomerId { get; set; }
+    public string RowKey { get; set; } // Order ID
 
-    [Required]
     public List<Product> Products { get; set; } = [];
     public decimal Total => Products.Sum(p => p.Price);
+
+    public DateTimeOffset? Timestamp { get; set; } = DateTimeOffset.UtcNow;
+    public ETag ETag { get; set; } = new ETag("*");
+
+    public Order()
+    {
+    }
+
+    public Order(string userId, List<Product> products)
+    {
+        PartitionKey = userId;
+        RowKey = Guid.NewGuid().ToString();
+        Products = products;
+    }
 }

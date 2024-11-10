@@ -16,8 +16,8 @@ public class Review : ITableEntity
     public string Description { get; set; }
     public int Rating { get; set; }
 
-    public DateTimeOffset? Timestamp { get; set; }
-    public ETag ETag { get; set; }
+    public DateTimeOffset? Timestamp { get; set; } = DateTimeOffset.UtcNow;
+    public ETag ETag { get; set; } = new ETag("*");
 
     public Review()
     {
