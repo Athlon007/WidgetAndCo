@@ -1,8 +1,8 @@
 namespace WidgetAndCo.Core.DTOs;
 
 public record ReviewResponseDto(
-    string PartitionKey,
-    string RowKey,
+    string ProductId,
+    string ReviewId,
     Guid UserId,
     string Title,
     string Description,

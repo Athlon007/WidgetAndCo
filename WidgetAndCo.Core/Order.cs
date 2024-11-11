@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization;
 using Azure;
 using Azure.Data.Tables;
 
@@ -10,6 +11,7 @@ public class Order : ITableEntity
 
     public string RowKey { get; set; } // Order ID
 
+    [IgnoreDataMember]
     public List<Product> Products { get; set; } = [];
     public decimal Total => Products.Sum(p => p.Price);
 

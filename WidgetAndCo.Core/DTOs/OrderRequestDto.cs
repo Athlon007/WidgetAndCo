@@ -1,11 +1,10 @@
 namespace WidgetAndCo.Core.DTOs;
 
 public record OrderRequestDto(
-    string UserId,
-    List<Guid> ProductIds
+    Guid[] ProductIds
     )
 {
-    public OrderRequestDto() : this("", new List<Guid>())
+    public OrderRequestDto() : this(Array.Empty<Guid>())
     {
 
     }

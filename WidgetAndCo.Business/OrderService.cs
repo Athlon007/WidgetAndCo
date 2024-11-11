@@ -5,17 +5,35 @@ using WidgetAndCo.Core.Interfaces;
 
 namespace WidgetAndCo.Business;
 
-public class OrderService(IOrderRepository orderRepository, IProductRepository productRepositry, IMapper mapper) : IOrderService
+public class OrderService(IOrderRepository orderRepository, IOrderProductRepository orderProductRepository, IProductRepository productRepository, IMapper mapper) : IOrderService
 {
-    public async Task<OrderResponseDto> CreateOrderAsync(OrderRequestDto orderRequest)
+    public async Task<OrderResponseDto> CreateOrderAsync(Guid userId, OrderRequestDto orderRequest)
     {
-        var order = await orderRepository.StoreOrderAsync(orderRequest);
+        var order = await orderRepository.StoreOrderAsync(userId, orderRequest);
+
+        foreach (var productId in orderRequest.ProductIds)
+        {
+            await orderProductRepository.AddOrderProductAsync(Guid.Parse(order.RowKey), productId);
+            order.Products.Add(new Product
+            {
+                Id = productId,
+            });
+        }
+
         return mapper.Map<OrderResponseDto>(order);
     }
 
     public async Task<OrderResponseDto> GetOrderAsync(Guid userId, Guid orderId)
     {
         var order = await orderRepository.GetOrderAsync(userId, orderId);
+
+        foreach (var orderProduct in await orderProductRepository.GetOrderProductsAsync(orderId))
+        {
+            order.Products.Add(new Product
+            {
+                Id = Guid.Parse(orderProduct.RowKey),
+            });
+        }
 
         var total = await CalculateTotal(order);
 
@@ -31,9 +49,10 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
     {
         var total = 0m;
         // For each product in the order, get the product details
-        for (var i = 0; i < order.Products.Count; i++)
+        foreach (var t in order.Products)
         {
-            var product = await productRepositry.GetProductByIdAsync(order.Products[i].Id);
+            var product = await productRepository.GetProductByIdAsync(t.Id);
+            if (product == null) continue;
             total += product.Price;
         }
 
@@ -46,6 +65,14 @@ public class OrderService(IOrderRepository orderRepository, IProductRepository p
         decimal[] totals = new decimal[orders.Count()];
         foreach (var order in orders)
         {
+            foreach (var orderProduct in await orderProductRepository.GetOrderProductsAsync(Guid.Parse(order.RowKey)))
+            {
+                order.Products.Add(new Product
+                {
+                    Id = Guid.Parse(orderProduct.RowKey),
+                });
+            }
+
             var total = await CalculateTotal(order);
             totals[orders.ToList().IndexOf(order)] = total;
         }

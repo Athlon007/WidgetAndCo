@@ -9,12 +9,8 @@ namespace WidgetAndCo.ReviewProcessingFunction;
 public class GetReview(ILogger<GetReview> logger, IReviewService reviewService)
 {
     [Function("GetReview")]
-    public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "GetReview/{productId}/{reviewId}")] HttpRequest req, string productId, string reviewId)
     {
-        // Get product ID and review ID from query string
-        var productId = req.Query["productId"];
-        var reviewId = req.Query["reviewId"];
-
         Guid partitionKey;
         Guid rowKey;
 
@@ -30,7 +26,7 @@ public class GetReview(ILogger<GetReview> logger, IReviewService reviewService)
 
         logger.LogInformation($"Product ID: {partitionKey}\nReview ID: {rowKey}");
 
-        var reviews = reviewService.GetReview(partitionKey, rowKey);
+        var reviews = await reviewService.GetReview(partitionKey, rowKey);
 
         return new OkObjectResult(reviews);
     }

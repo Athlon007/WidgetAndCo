@@ -23,7 +23,14 @@ public class ReviewService(IReviewRepository reviewRepository, IMapper mapper) :
     public async Task<IEnumerable<ReviewResponseDto>> GetReviews(Guid productId)
     {
         var reviews = await reviewRepository.GetReviewsAsync(productId);
-        return reviews.Select(review => mapper.Map<ReviewResponseDto>(review));
+        return reviews.Select(review => new ReviewResponseDto
+        {
+            ProductId = productId.ToString(),
+            ReviewId = review.RowKey,
+            Title = review.Title,
+            Description = review.Description,
+            Rating = review.Rating
+        });
     }
 
     public async Task<ReviewResponseDto> GetReview(Guid productId, Guid reviewId)

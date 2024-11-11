@@ -268,4 +268,81 @@ public class UserServiceTests
         Assert.IsNotNull(result);
         Assert.IsInstanceOf<Guid>(result);
     }
+
+    [Test]
+    public async Task AddUserAsync_ShouldAddUser()
+    {
+        // Arrange
+        var user = GetUser();
+
+        _userRepositoryMock.Setup(repo => repo.AddUserAsync(user)).Returns(Task.CompletedTask);
+
+        // Act
+        await _userService.AddUserAsync(user);
+
+        // Assert
+        _userRepositoryMock.Verify(repo => repo.AddUserAsync(user), Times.Once);
+    }
+
+    [Test]
+    public async Task GetAllUsersAsync_ShouldReturnListOfUserResponseDtos()
+    {
+        // Arrange
+        var users = new List<User> {
+            GetUser(),
+            GetUser()
+        };
+
+        var userDtos = users.Select(u => new UserResponseDto
+        {
+            Id = u.Id,
+            FirstName = u.FirstName,
+            LastName = u.LastName,
+            Email = u.Email,
+            Role = u.Role.ToString(),
+            CreatedAt = u.CreatedAt,
+            LastLogin = u.LastLogin
+        });
+
+        _userRepositoryMock.Setup(repo => repo.GetAllUsersAsync()).ReturnsAsync(users);
+        _mapperMock.Setup(m => m.Map<IEnumerable<UserResponseDto>>(users)).Returns(userDtos);
+
+        // Act
+        var result = await _userService.GetAllUsersAsync();
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOf<IEnumerable<UserResponseDto>>(result);
+        Assert.AreEqual(users.Count, result.Count());
+    }
+
+    [Test]
+    public async Task UpdateUserAsync_ShouldUpdateUser()
+    {
+        // Arrange
+        var user = GetUser();
+
+        _userRepositoryMock.Setup(repo => repo.UpdateUserAsync(user)).Returns(Task.CompletedTask);
+
+        // Act
+        await _userService.UpdateUserAsync(user);
+
+        // Assert
+        _userRepositoryMock.Verify(repo => repo.UpdateUserAsync(user), Times.Once);
+    }
+
+    [Test]
+    public async Task DeleteUserAsync_ShouldDeleteUser()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+
+        _userRepositoryMock.Setup(repo => repo.DeleteUserAsync(id)).Returns(Task.CompletedTask);
+
+        // Act
+        await _userService.DeleteUserAsync(id);
+
+        // Assert
+        _userRepositoryMock.Verify(repo => repo.DeleteUserAsync(id), Times.Once);
+    }
 }

@@ -1,5 +1,5 @@
 using System.Text;
-using Azure.Storage.Blobs;
+using Azure.Data.Tables;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -45,10 +45,18 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IBlobRepository, BlobRepository>();
+var connectionString = builder.Configuration.GetConnectionString("AzureTableStorageConnection") ?? throw new InvalidOperationException("AzureTableStorageConnection environment variable is not set.");
+var tableStorageOrderTableName = builder.Configuration.GetSection("TableStorage").GetValue<string>("OrderTableName") ?? throw new InvalidOperationException("TableStorageOrderTableName environment variable is not set.");
+var tableStorageOrderProductTableName = builder.Configuration.GetSection("TableStorage").GetValue<string>("OrderProductTableName") ?? throw new InvalidOperationException("TableStorageOrderTableName environment variable is not set.");
+builder.Services.AddSingleton<IOrderRepository>(sp => new OrderRepository(new TableClient(connectionString,
+        tableStorageOrderTableName)));
+builder.Services.AddSingleton<IOrderProductRepository>(sp => new OrderProductRepository(
+    new TableClient(connectionString,
+        tableStorageOrderProductTableName)));
 // Inject services.
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
-
+builder.Services.AddScoped<IOrderService, OrderService>();
 // Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -81,8 +89,6 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
-
-
 
     // Add Review Function Swagger doc
     options.DocumentFilter<ReviewStoreDocFilter>();

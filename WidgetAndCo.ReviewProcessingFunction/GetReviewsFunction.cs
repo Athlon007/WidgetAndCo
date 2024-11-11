@@ -10,11 +10,8 @@ public class GetReviewsFunction(ILogger<GetReviewsFunction> logger, IReviewServi
 {
 
     [Function("GetReviews")]
-    public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "GetReviews/{productId}")] HttpRequest req, string productId)
     {
-        // Get Partition Key (product id) from query string
-        var productId = req.Query["productId"];
-
         Guid partitionKey;
 
         if (string.IsNullOrEmpty(productId) || !Guid.TryParse(productId, out partitionKey))
@@ -24,7 +21,7 @@ public class GetReviewsFunction(ILogger<GetReviewsFunction> logger, IReviewServi
 
         logger.LogInformation($"Product ID: {partitionKey}");
 
-        var reviews = reviewService.GetReviews(partitionKey);
+        var reviews = await reviewService.GetReviews(partitionKey);
 
         return new OkObjectResult(reviews);
     }

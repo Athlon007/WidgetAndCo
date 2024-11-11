@@ -11,6 +11,7 @@
         <PackageReference Include="AutoMapper" Version="13.0.1"/>
         <PackageReference Include="Azure.Data.Tables" Version="12.9.1"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="8.0.10"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.6.2" />
     </ItemGroup>
 
