@@ -1,14 +1,25 @@
 using Azure.Data.Tables;
+using Microsoft.Extensions.Configuration;
 using WidgetAndCo.Core;
 using WidgetAndCo.Core.Interfaces;
 
 namespace WidgetAndCo.Data;
 
-public class OrderProductRepository(TableClient tableClient) : IOrderProductRepository
+public class OrderProductRepository : IOrderProductRepository
 {
+    private readonly TableClient _tableClient;
+
+    public OrderProductRepository(IConfiguration configuration)
+    {
+        var connectionString = configuration["AzureWebJobsStorage"] ?? throw new InvalidOperationException("AzureWebJobsStorage environment variable is not set.");
+        var orderProductTableName = configuration["OrderProductTableName"] ?? throw new InvalidOperationException("OrderProductTableName environment variable is not set.");
+
+        _tableClient = new TableClient(connectionString, orderProductTableName);
+    }
+
     public async Task AddOrderProductAsync(Guid orderId, Guid productId)
     {
-        await tableClient.CreateIfNotExistsAsync();
+        await _tableClient.CreateIfNotExistsAsync();
 
         var orderProduct = new OrderProduct
         {
@@ -16,16 +27,16 @@ public class OrderProductRepository(TableClient tableClient) : IOrderProductRepo
             RowKey = productId.ToString(),
         };
 
-        await tableClient.AddEntityAsync(orderProduct);
+        await _tableClient.AddEntityAsync(orderProduct);
     }
 
     public async Task<IEnumerable<OrderProduct>> GetOrderProductsAsync(Guid orderId)
     {
-        await tableClient.CreateIfNotExistsAsync();
+        await _tableClient.CreateIfNotExistsAsync();
 
         var output = new List<OrderProduct>();
 
-        await foreach (OrderProduct orderProduct in tableClient.QueryAsync<OrderProduct>(filter: $"PartitionKey eq '{orderId}'"))
+        await foreach (OrderProduct orderProduct in _tableClient.QueryAsync<OrderProduct>(filter: $"PartitionKey eq '{orderId}'"))
         {
             output.Add(orderProduct);
         }

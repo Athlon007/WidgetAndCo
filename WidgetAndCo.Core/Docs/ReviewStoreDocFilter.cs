@@ -9,21 +9,21 @@ public class ReviewStoreDocFilter(IConfiguration configuration) : IDocumentFilte
 {
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
-        //var localUrl = "https://localhost:5173";
-        // Get from launchSettings.json
-        // Load it
         var launchSettings = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(System.IO.File.ReadAllText("Properties/launchSettings.json"));
         var localUrl = launchSettings["profiles"]["http"]["applicationUrl"];
 
-        var functionsUrl = configuration["ReviewProcessingFunctionUrl"];
+        var reviewFunctionsUrl = configuration["ReviewProcessingFunctionUrl"];
+        var orderFunctionsUrl = configuration["OrderProcessingFunctionUrl"];
 
         swaggerDoc.Servers = new List<OpenApiServer>
         {
             // Also keep current server
-            new OpenApiServer { Url = localUrl, Description = "Local" },
-            new OpenApiServer { Url = functionsUrl, Description = "Azure Functions" }
+            new() { Url = localUrl, Description = "Local" },
+            new() { Url = reviewFunctionsUrl, Description = "Review Azure Function" },
+            new() { Url = orderFunctionsUrl, Description = "Order Azure Function" }
         };
 
+        #region Reviews
         swaggerDoc.Paths.Add("/StoreReview", new OpenApiPathItem
         {
             Operations =
@@ -167,5 +167,126 @@ public class ReviewStoreDocFilter(IConfiguration configuration) : IDocumentFilte
                 }
             }
         });
+
+        #endregion
+
+        #region Orders
+
+        swaggerDoc.Paths.Add("/CreateOrder", new OpenApiPathItem
+        {
+            Operations =
+            {
+                [OperationType.Post] = new OpenApiOperation
+                {
+                    Summary = "Creates a new order. Must be authenticated",
+                    Responses = new OpenApiResponses
+                    {
+                        ["200"] = new OpenApiResponse { Description = "Success" }
+                    },
+                    RequestBody = new OpenApiRequestBody
+                    {
+                        Content =
+                        {
+                            ["application/json"] = new OpenApiMediaType
+                            {
+                                Schema = new OpenApiSchema
+                                {
+                                    Type = "object",
+                                    Properties =
+                                    {
+                                        ["productsIDs"] = new OpenApiSchema
+                                        {
+                                            Type = "array",
+                                            Items = new OpenApiSchema
+                                            {
+                                                Type = "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        swaggerDoc.Paths.Add("/GetOrder/{orderId}", new OpenApiPathItem
+        {
+            Operations =
+            {
+                [OperationType.Get] = new OpenApiOperation
+                {
+                    Summary = "Gets an order by ID. Must be authenticated",
+                    Parameters = new List<OpenApiParameter>
+                    {
+                        new()
+                        {
+                            Name = "orderId",
+                            In = ParameterLocation.Path,
+                            Required = true,
+                            Schema = new OpenApiSchema { Type = "string" }
+                        }
+                    },
+                    Responses = new OpenApiResponses
+                    {
+                        ["200"] = new OpenApiResponse
+                        {
+                            Description = "Success",
+                            Content =
+                            {
+                                ["application/json"] = new OpenApiMediaType
+                                {
+                                    Schema = new OpenApiSchema
+                                    {
+                                        // Array of GUIDs
+                                        Type = "array",
+                                        Items = new OpenApiSchema
+                                        {
+                                            Type = "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        swaggerDoc.Paths.Add("/GetOrders", new OpenApiPathItem
+        {
+            Operations =
+            {
+                [OperationType.Get] = new OpenApiOperation
+                {
+                    Summary = "Gets all orders. Must be authenticated",
+                    Responses = new OpenApiResponses
+                    {
+                        ["200"] = new OpenApiResponse
+                        {
+                            Description = "Success",
+                            Content =
+                            {
+                                ["application/json"] = new OpenApiMediaType
+                                {
+                                    Schema = new OpenApiSchema
+                                    {
+                                        // Array of GUIDs
+                                        Type = "array",
+                                        Items = new OpenApiSchema
+                                        {
+                                            Type = "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        #endregion
     }
 }

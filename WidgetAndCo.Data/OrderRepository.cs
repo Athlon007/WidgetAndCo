@@ -1,15 +1,26 @@
 using Azure.Data.Tables;
+using Microsoft.Extensions.Configuration;
 using WidgetAndCo.Core;
 using WidgetAndCo.Core.DTOs;
 using WidgetAndCo.Core.Interfaces;
 
 namespace WidgetAndCo.Data;
 
-public class OrderRepository(TableClient tableClient) : IOrderRepository
+public class OrderRepository : IOrderRepository
 {
-    public async Task<Order> StoreOrderAsync(Guid userId, OrderRequestDto order)
+    private readonly TableClient _tableClient;
+
+    public OrderRepository(IConfiguration configuration)
     {
-        await tableClient.CreateIfNotExistsAsync();
+        var connectionString = configuration["AzureWebJobsStorage"] ?? throw new InvalidOperationException("AzureWebJobsStorage environment variable is not set.");
+        var orderTableName = configuration["OrderTableName"] ?? throw new InvalidOperationException("OrderTableName environment variable is not set.");
+
+        _tableClient = new TableClient(connectionString, orderTableName);
+    }
+
+    public async Task StoreOrderAsync(Guid userId, OrderRequestDto order)
+    {
+        await _tableClient.CreateIfNotExistsAsync();
 
         var orderEntity = new Order
         {
@@ -17,16 +28,16 @@ public class OrderRepository(TableClient tableClient) : IOrderRepository
             RowKey = Guid.NewGuid().ToString()
         };
 
-        return orderEntity;
+        await _tableClient.AddEntityAsync(orderEntity);
     }
 
     public async Task<IEnumerable<Order>> GetOrdersAsync(Guid userId)
     {
-        await tableClient.CreateIfNotExistsAsync();
+        await _tableClient.CreateIfNotExistsAsync();
 
         var output = new List<Order>();
 
-        await foreach (Order order in tableClient.QueryAsync<Order>(filter: $"PartitionKey eq '{userId}'"))
+        await foreach (Order order in _tableClient.QueryAsync<Order>(filter: $"PartitionKey eq '{userId}'"))
         {
             output.Add(new Order
             {
@@ -40,9 +51,9 @@ public class OrderRepository(TableClient tableClient) : IOrderRepository
 
     public async Task<Order> GetOrderAsync(Guid userId, Guid orderId)
     {
-        await tableClient.CreateIfNotExistsAsync();
+        await _tableClient.CreateIfNotExistsAsync();
 
-        var order = await tableClient.GetEntityAsync<Order>(userId.ToString(), orderId.ToString());
+        var order = await _tableClient.GetEntityAsync<Order>(userId.ToString(), orderId.ToString());
 
         return new Order
         {

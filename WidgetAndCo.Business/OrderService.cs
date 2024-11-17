@@ -7,20 +7,9 @@ namespace WidgetAndCo.Business;
 
 public class OrderService(IOrderRepository orderRepository, IOrderProductRepository orderProductRepository, IProductRepository productRepository, IMapper mapper) : IOrderService
 {
-    public async Task<OrderResponseDto> CreateOrderAsync(Guid userId, OrderRequestDto orderRequest)
+    public async Task CreateOrderAsync(Guid userId, OrderRequestDto orderRequest)
     {
-        var order = await orderRepository.StoreOrderAsync(userId, orderRequest);
-
-        foreach (var productId in orderRequest.ProductIds)
-        {
-            await orderProductRepository.AddOrderProductAsync(Guid.Parse(order.RowKey), productId);
-            order.Products.Add(new Product
-            {
-                Id = productId,
-            });
-        }
-
-        return mapper.Map<OrderResponseDto>(order);
+        await orderRepository.StoreOrderAsync(userId, orderRequest);
     }
 
     public async Task<OrderResponseDto> GetOrderAsync(Guid userId, Guid orderId)
